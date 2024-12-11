@@ -1,25 +1,12 @@
 @extends('layout.app')
 
 @section('content')
-<div class="min-h-screen">
-    <!-- Header Navigation -->
-    <header class="w-full py-4 px-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center">
-                <span class="text-2xl font-bold">Studoro</span>
-            </div>
-            <div class="flex items-center">
-                <a href="{{ route('pomodoro') }}"
-                   class="px-6 py-2 bg-orange-400 text-white rounded-full hover:bg-orange-500 transition-all">
-                    Account Name
-                </a>
-            </div>
-        </div>
-    </header>
+<div class="min-h-screen bg-yellow-50">
+    <x-navigation type="homepage" />
 
     <!-- Hero Section -->
-    <section class="py-16">
-        <div class="max-w-7xl mx-auto px-4">
+    <section class="py-24">
+        <div class="max-w-6xl mx-auto px-4">
             <div class="text-center">
                 <h1 class="text-4xl font-bold mb-6">
                     Optimalkan Belajarmu dengan Teknik
@@ -34,6 +21,30 @@
                     Try Now
                 </a>
             </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Features</h2>
+            <!-- Add your features content -->
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section id="why-us" class="py-20">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Why Choose Us</h2>
+            <!-- Add your why choose us content -->
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+            <!-- Add your FAQ content -->
         </div>
     </section>
 </div>

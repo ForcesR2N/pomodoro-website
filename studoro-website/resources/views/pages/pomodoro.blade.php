@@ -3,7 +3,6 @@
 @section('content')
 <div class="min-h-screen bg-yellow-50 pt-20">
     <x-navigation />
-    {{-- Navigation --}}
 
     {{-- Timer Section --}}
 <div id="timer" class="max-w-2xl mx-auto bg-white rounded-2xl p-8 m-4 shadow-sm">
