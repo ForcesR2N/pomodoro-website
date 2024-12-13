@@ -53,83 +53,107 @@
 </div>
 
 
-    {{-- Tasks Section --}}
-    <div id="tasks" class="max-w-5xl mx-auto px-4 mt-8 scroll-mt-24">
-        <h2 class="text-3xl font-bold text-center text-orange-400 mb-12">
-            LIST TASKS
-        </h2>
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-orange-500 mb-8">Pomodoro Task List</h1>
 
-        {{-- Tasks Container --}}
-        <div class="flex gap-8">
-            {{-- Ongoing Tasks --}}
-            <div class="flex-1 bg-white rounded-2xl p-6 shadow-sm">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-medium">Ongoing</h3>
-                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                    </button>
-                </div>
-
-                {{-- Task Items --}}
-                <div class="space-y-4">
-                    @foreach(['MEDIUM', 'LOW'] as $priority)
-                    <div class="p-4 rounded-lg border border-gray-100 hover:shadow-sm transition-all">
-                        <div class="flex justify-between mb-2">
-                            <div>
-                                <h4 class="font-medium mb-1">Menyelesaikan tugas matematika</h4>
-                                <p class="text-sm text-gray-600">Halaman 77 bab 7</p>
-                            </div>
-                            <button class="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">2024-12-07</span>
-                            <span class="text-xs px-2 py-1 rounded-full {{ $priority === 'MEDIUM' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600' }}">
-                                {{ $priority }}
-                            </span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
+    <div class="grid grid-cols-2 gap-8">
+        <!-- Ongoing Tasks -->
+        <div class="bg-gray-50 rounded-xl p-6" id="ongoing-tasks">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold">Ongoing</h2>
+                <button
+                    class="text-orange-500 hover:text-orange-600"
+                    onclick="openTaskModal('create', 'ongoing')"
+                >
+                    Add Task
+                </button>
             </div>
+            <div id="ongoing-tasks-list" class="space-y-3">
+                <!-- Tasks will be dynamically added here -->
+            </div>
+        </div>
 
-            {{-- Done Tasks --}}
-            <div class="flex-1 bg-white rounded-2xl p-6 shadow-sm">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-medium">Done</h3>
-                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                    </button>
-                </div>
+        <!-- Done Tasks -->
+        <div class="bg-gray-50 rounded-xl p-6" id="done-tasks">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold">Done</h2>
 
-                <div class="p-4 rounded-lg border border-gray-100 hover:shadow-sm transition-all">
-                    <div class="flex justify-between mb-2">
-                        <div>
-                            <h4 class="font-medium mb-1">Menyelesaikan tugas Mobile</h4>
-                            <p class="text-sm text-gray-600">Reuse dan OOP</p>
-                        </div>
-                        <button class="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">2024-12-01</span>
-                        <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-600">
-                            HIGH
-                        </span>
-                    </div>
-                </div>
+            </div>
+            <div id="done-tasks-list" class="space-y-3">
+                <!-- Tasks will be dynamically added here -->
             </div>
         </div>
     </div>
+</div>
+
+<!-- Task Modal -->
+<div
+    id="task-modal"
+    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden"
+>
+    <div class="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 id="modal-title" class="text-lg font-semibold mb-4">Add Task</h3>
+        <form id="task-form">
+            <input type="hidden" id="task-id">
+            <input type="hidden" id="task-status">
+            <div class="mb-4">
+                <label for="task-title" class="block text-sm font-medium">Title</label>
+                <input
+                    type="text"
+                    id="task-title"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-orange-500"
+                    required
+                >
+            </div>
+            <div class="mb-4">
+                <label for="task-description" class="block text-sm font-medium">Description</label>
+                <textarea
+                    id="task-description"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-orange-500"
+                    rows="3"
+                    required
+                ></textarea>
+            </div>
+            <div class="mb-4">
+                <label for="task-due-date" class="block text-sm font-medium">Due Date</label>
+                <input
+                    type="date"
+                    id="task-due-date"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-orange-500"
+                    required
+                >
+            </div>
+            <div class="mb-4">
+                <label for="task-priority" class="block text-sm font-medium">Priority</label>
+                <select
+                    id="task-priority"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-orange-500"
+                    required
+                >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                </select>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button
+                    type="button"
+                    onclick="closeTaskModal()"
+                    class="text-gray-500 hover:text-gray-700"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                >
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="{{ mix('resources/js/Note/note.js') }}"></script>
+
 </div>
 @endsection
