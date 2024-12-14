@@ -1,0 +1,57 @@
+/* Custom checkbox styling */
+.task-checkbox {
+    @apply rounded-full border-2;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    position: relative;
+}
+
+.task-checkbox:checked {
+    @apply bg-orange-500 border-orange-500;
+}
+
+.task-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Task card */
+.task-card {
+    position: relative;
+}
+
+/* Priority tags */
+.priority-tag {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+/* Task actions menu */
+.task-actions {
+    z-index: 10;
+    min-width: 120px;
+}
+
+/* Animation for menu */
+.task-actions:not(.hidden) {
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
