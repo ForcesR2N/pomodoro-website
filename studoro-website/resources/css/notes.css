@@ -1,57 +1,84 @@
-/* Custom checkbox styling */
-.task-checkbox {
-    @apply rounded-full border-2;
-    appearance: none;
-    -webkit-appearance: none;
-    cursor: pointer;
+.task-list-container {
+    height: 400px !important;
+    max-height: 400px !important;
+    min-height: 400px !important;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: relative;
+    display: block;
 }
 
-.task-checkbox:checked {
-    @apply bg-orange-500 border-orange-500;
+/* Empty state container */
+.empty-state-container {
+    height: 400px !important;
+    max-height: 400px !important;
+    min-height: 400px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.task-checkbox:checked::after {
-    content: '';
-    position: absolute;
-    left: 5px;
-    top: 2px;
+/* Task card styling */
+.task-card {
+    margin-bottom: 0.75rem;
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.task-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Custom scrollbar styles */
+.task-list-container {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.task-list-container::-webkit-scrollbar {
     width: 4px;
-    height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
 }
 
-/* Task card */
+.task-list-container::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+}
+
+.task-list-container::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.task-list-container::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Task card animations */
 .task-card {
     position: relative;
+    transition: all 0.3s ease-in-out;
 }
 
-/* Priority tags */
-.priority-tag {
-    font-size: 0.75rem;
-    line-height: 1rem;
+.task-card.completing {
+    opacity: 0;
+    transform: translateX(100%);
 }
 
-/* Task actions menu */
-.task-actions {
-    z-index: 10;
-    min-width: 120px;
+.task-card.reverting {
+    opacity: 0;
+    transform: translateX(-100%);
 }
 
-/* Animation for menu */
-.task-actions:not(.hidden) {
-    animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+.task-card.deleting {
+    opacity: 0;
+    transform: scale(0.95);
 }

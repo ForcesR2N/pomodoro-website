@@ -1,8 +1,7 @@
-// resources/js/components/Timer/timer.js
 import { TIMER_MODES } from './timerConfig';
 import { TimerUI } from './timerUI';
 
-class Timer {
+export class Timer {
     constructor() {
         this.state = {
             currentMode: 'focus',
@@ -10,8 +9,9 @@ class Timer {
             isRunning: false,
             timer: null,
             currentSession: 1,
-            totalSessions: 4, // 4 sessions before long break
-            totalTime: TIMER_MODES.focus.time
+            totalSessions: 4,
+            totalTime: TIMER_MODES.focus.time,
+            currentTask: null
         };
 
         this.elements = {
@@ -99,15 +99,42 @@ class Timer {
         }
     }
 
-complete() {
-    clearInterval(this.state.timer);
-    this.state.isRunning = false;
-    this.ui.updateStartButton(false);
+    complete() {
+        clearInterval(this.state.timer);
+        this.state.isRunning = false;
+        this.ui.updateStartButton(false);
 
-    // Show completion message and wait for user confirmation
-    this.ui.showNotification('completion', this.state.currentMode);
-    this.ui.onContinue = () => this.transitionToNextPhase();
-}
+        if (this.state.currentTask) {
+            this.ui.showTaskCompletionPrompt(this.state.currentTask, (completed) => {
+                if (completed) {
+                    window.taskManager?.handleComplete(this.state.currentTask.id);
+                }
+                this.state.currentTask = null;
+                this.transitionToNextPhase();
+            });
+        } else {
+            this.ui.showNotification('completion', this.state.currentMode);
+            this.ui.onContinue = () => this.transitionToNextPhase();
+        }
+    }
+
+    startTaskTimer(task) {
+        this.state.currentTask = task;
+        this.reset();
+
+        if (this.elements.title) {
+            this.elements.title.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <span class="text-sm text-gray-500 mb-1">Mengerjakan:</span>
+                    <span class="text-xl">${task.title}</span>
+                </div>
+            `;
+        }
+
+        this.state.isRunning = true;
+        this.state.timer = setInterval(() => this.tick(), 1000);
+        this.ui.updateStartButton(true);
+    }
 
     transitionToNextPhase() {
         if (this.state.currentMode === 'focus') {
@@ -184,7 +211,8 @@ complete() {
 
 // Initialize timer when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new Timer();
+    if (document.getElementById('timer')) {
+        window.timer = new Timer();
+    }
 });
 
-export { Timer };

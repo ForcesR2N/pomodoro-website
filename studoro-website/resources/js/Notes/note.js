@@ -7,9 +7,15 @@ class TaskManager {
     constructor() {
         if (typeof window !== 'undefined') {
             this.modal = new Modal();
+            this.timer = window.timer;
             this.init();
-            // Make it globally accessible
             window.taskManager = this;
+        }
+    }
+
+    handleStartTask(task) {
+        if (this.timer) {
+            this.timer.startTaskTimer(task);
         }
     }
 
@@ -20,17 +26,13 @@ class TaskManager {
     }
 
     setupEventListeners() {
-        // Form submission
         document.getElementById('task-form')?.addEventListener('submit', this.handleFormSubmit.bind(this));
-
-        // Add task button
         const addTaskBtn = document.querySelector('[data-action="add-task"]');
         addTaskBtn?.addEventListener('click', () => this.modal.open('create'));
 
-        // Global click handler for task actions
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.options-btn')) {
-                document.querySelectorAll('.options-menu').forEach(menu => {
+                document.querySelectorAll('.task-actions').forEach(menu => {
                     menu.classList.add('hidden');
                 });
             }
@@ -73,20 +75,25 @@ class TaskManager {
 
             if (taskList.length === 0) {
                 container.innerHTML = `
-                    <div class="flex items-center justify-center h-32 text-gray-400">
-                        <p>No tasks yet</p>
+                    <div class="text-center">
+                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p class="text-gray-400">No ${status} tasks yet</p>
                     </div>
                 `;
                 return;
             }
 
             taskList.forEach(task => {
-                const card = TaskCard.create(task, status, {
+                const taskCard = TaskCard.create(task, status, {
                     onEdit: this.handleEdit.bind(this),
                     onDelete: this.handleDelete.bind(this),
-                    onComplete: this.handleComplete.bind(this)
+                    onComplete: this.handleComplete.bind(this),
+                    onReset: this.handleReset.bind(this),
+                    onStartTask: this.handleStartTask.bind(this)
                 });
-                container.appendChild(card);
+                container.appendChild(taskCard);
             });
         });
     }
@@ -104,9 +111,12 @@ class TaskManager {
     handleComplete(taskId) {
         taskStore.moveTask(STATUS.ONGOING, STATUS.DONE, taskId);
     }
+
+    handleReset(taskId) {
+        taskStore.moveTask(STATUS.DONE, STATUS.ONGOING, taskId);
+    }
 }
 
-// Initialize if we're on the notes page
 if (document.getElementById('ongoing-tasks-list')) {
     new TaskManager();
 }

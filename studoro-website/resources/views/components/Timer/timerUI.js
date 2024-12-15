@@ -17,29 +17,24 @@ export class TimerUI {
    }
 
    updateDisplay(timeLeft, mode, config, progress = 0) {
-       if (!this.elements.display) return;
+    if (!this.elements.display) return;
 
-       // Update timer display
-       this.elements.display.textContent = this.formatTime(timeLeft);
+    this.elements.display.textContent = this.formatTime(timeLeft);
 
-       // Update title with current mode label
-       if (this.elements.title && config[mode]) {
-           this.elements.title.textContent = config[mode].label;
-       }
+    // Hanya update title jika tidak ada task yang aktif
+    if (this.elements.title && config[mode] && !this.elements.title.querySelector('.text-xl')) {
+        this.elements.title.textContent = config[mode].label;
+    }
 
-       // Update progress
-       this.updateProgress(progress);
+    this.updateProgress(progress);
+    this.updateColorTheme(mode);
 
-       // Update theme colors based on mode
-       this.updateColorTheme(mode);
-
-       // Handle encouragement messages
-       if (mode === 'focus') {
-           this.startEncouragementMessages();
-       } else {
-           this.stopEncouragementMessages();
-       }
-   }
+    if (mode === 'focus') {
+        this.startEncouragementMessages();
+    } else {
+        this.stopEncouragementMessages();
+    }
+}
 
    updateProgress(progress) {
        if (!this.elements.progress || !this.elements.progressBar) return;
@@ -231,4 +226,37 @@ export class TimerUI {
            this.encouragementInterval = null;
        }
    }
+   showTaskCompletionPrompt(task, callback) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+    modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <div class="relative bg-white rounded-xl shadow-lg max-w-md w-full p-6 transform transition-all">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Waktu Habis!</h3>
+                <p class="text-gray-600">Apakah tugas "${task.title}" sudah selesai?</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="not-done-btn flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors duration-300">
+                    Belum Selesai
+                </button>
+                <button class="task-done-btn flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300">
+                    Sudah Selesai
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelector('.task-done-btn').addEventListener('click', () => {
+        this.closeNotification(modal);
+        callback(true);
+    });
+
+    modal.querySelector('.not-done-btn').addEventListener('click', () => {
+        this.closeNotification(modal);
+        callback(false);
+    });
+}
 }

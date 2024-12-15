@@ -3,16 +3,18 @@ import { PRIORITY_CLASSES } from '../Store/constants';
 export class TaskCard {
     static create(task, status, handlers) {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-lg shadow p-4 relative';
+        card.className = 'task-card bg-white rounded-lg shadow p-4 relative';
         card.setAttribute('data-task-id', task.id);
+
+        const checkboxHtml = status === 'ongoing' ? `
+            <div class="pt-1">
+                <input type="checkbox" class="task-checkbox" ${status === 'done' ? 'checked' : ''}>
+            </div>
+        ` : '';
 
         card.innerHTML = `
             <div class="flex items-start gap-3">
-                <div class="pt-1">
-                    <input type="checkbox"
-                        class="w-4 h-4 rounded-full border-gray-300 text-orange-500 focus:ring-orange-500"
-                        ${status === 'done' ? 'checked' : ''}>
-                </div>
+                ${checkboxHtml}
                 <div class="flex-1">
                     <div class="flex justify-between">
                         <div>
@@ -25,10 +27,26 @@ export class TaskCard {
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <div class="options-menu hidden absolute right-0 top-8 w-48 bg-white rounded-md shadow-lg z-10 py-1">
+                        <div class="task-actions hidden absolute right-0 top-8 w-48 bg-white rounded-md shadow-lg z-10 py-1">
+                            ${status === 'ongoing' ? `
+                                <button class="start-task-btn block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-100">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        </svg>
+                                        Kerjakan Tugas Ini
+                                    </div>
+                                </button>
+                            ` : ''}
                             <button class="edit-btn block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 Edit
                             </button>
+                            ${status === 'done' ? `
+                                <button class="incomplete-btn block w-full text-left px-4 py-2 text-sm text-orange-600 hover:bg-gray-100">
+                                    Mark as Incomplete
+                                </button>
+                            ` : ''}
                             <button class="delete-btn block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
                                 Delete
                             </button>
@@ -53,17 +71,39 @@ export class TaskCard {
     }
 
     static attachHandlers(card, task, status, handlers) {
-        // Checkbox handler
-        const checkbox = card.querySelector('input[type="checkbox"]');
-        checkbox?.addEventListener('change', () => handlers.onComplete(task.id));
+        if (status === 'ongoing') {
+            const checkbox = card.querySelector('.task-checkbox');
+            checkbox?.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    card.classList.add('completing');
+                    setTimeout(() => {
+                        handlers.onComplete(task.id);
+                    }, 300);
+                }
+            });
 
-        // Menu button and options
+            const startTaskBtn = card.querySelector('.start-task-btn');
+            startTaskBtn?.addEventListener('click', () => {
+                handlers.onStartTask(task);
+                card.querySelector('.task-actions').classList.add('hidden');
+            });
+        }
+
         const optionsBtn = card.querySelector('.options-btn');
-        const optionsMenu = card.querySelector('.options-menu');
+        const optionsMenu = card.querySelector('.task-actions');
 
         optionsBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
+            document.querySelectorAll('.task-actions').forEach(menu => {
+                if (menu !== optionsMenu) menu.classList.add('hidden');
+            });
             optionsMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!card.contains(e.target)) {
+                optionsMenu.classList.add('hidden');
+            }
         });
 
         card.querySelector('.edit-btn')?.addEventListener('click', () => {
@@ -72,8 +112,22 @@ export class TaskCard {
         });
 
         card.querySelector('.delete-btn')?.addEventListener('click', () => {
-            handlers.onDelete(task.id, status);
+            card.classList.add('deleting');
+            setTimeout(() => {
+                handlers.onDelete(task.id, status);
+            }, 300);
             optionsMenu.classList.add('hidden');
         });
+
+        const incompleteBtn = card.querySelector('.incomplete-btn');
+        if (incompleteBtn) {
+            incompleteBtn.addEventListener('click', () => {
+                card.classList.add('reverting');
+                setTimeout(() => {
+                    handlers.onReset(task.id);
+                }, 300);
+                optionsMenu.classList.add('hidden');
+            });
+        }
     }
 }
