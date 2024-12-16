@@ -213,13 +213,6 @@ export class TimerUI {
        setTimeout(() => modal.remove(), 300);
    }
 
-   startEncouragementMessages() {
-       if (this.encouragementInterval) clearInterval(this.encouragementInterval);
-       this.encouragementInterval = setInterval(() => {
-           this.showNotification('encouragement');
-       }, 5 * 60 * 1000); // Every 5 minutes
-   }
-
    stopEncouragementMessages() {
        if (this.encouragementInterval) {
            clearInterval(this.encouragementInterval);

@@ -39,22 +39,16 @@ export const taskStore = {
             const notes = await response.json();
             console.log('Received notes:', notes);
 
-            // Clear existing tasks before loading
+            // Clear existing tasks
             this.tasks.ongoing = [];
             this.tasks.done = [];
 
-            // Use Set to track unique IDs
-            const processedIds = new Set();
-
-            // Process each note only once
+            // Sort notes into appropriate arrays
             notes.forEach(note => {
-                if (!processedIds.has(note.id)) {
-                    processedIds.add(note.id);
-                    if (note.status === 'ongoing') {
-                        this.tasks.ongoing.push(note);
-                    } else if (note.status === 'done') {
-                        this.tasks.done.push(note);
-                    }
+                if (note.status === 'ongoing') {
+                    this.tasks.ongoing.push(note);
+                } else if (note.status === 'done') {
+                    this.tasks.done.push(note);
                 }
             });
 
@@ -82,7 +76,6 @@ export const taskStore = {
             );
 
             if (isDuplicate) {
-                // Silently return without showing error
                 return null;
             }
 
@@ -101,32 +94,24 @@ export const taskStore = {
                 })
             });
 
-            // Check if the response is ok but empty
-            if (response.status === 204) {
-                return null;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save note');
             }
 
-            // For successful responses with content
-            if (response.ok) {
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    const savedTask = await response.json();
-                    this.tasks[status].unshift(savedTask);
-                    this.notifySubscribers();
-                    return savedTask;
-                }
-                return null;
-            }
+            const savedTask = await response.json();
 
-            // Handle error responses
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to save note');
+            // Only update local state after successful server response
+            this.tasks[status].unshift(savedTask);
+            this.notifySubscribers();
 
+            return savedTask;
         } catch (error) {
             console.error('Error adding task:', error);
             throw error;
         }
     },
+
     // Update existing task
     async updateTask(status, taskId, updatedTask) {
         try {
@@ -216,13 +201,25 @@ export const taskStore = {
         }
     },
 
-    // Move task between statuses
     async moveTask(fromStatus, toStatus, taskId) {
         try {
+            const task = this.tasks[fromStatus].find(t => t.id === taskId);
+            if (!task) {
+                console.error('Task not found:', taskId);
+                return;
+            }
+
+            // Optimistic update
+            this.tasks[fromStatus] = this.tasks[fromStatus].filter(t => t.id !== taskId);
+            const updatedTask = { ...task, status: toStatus };
+            this.tasks[toStatus].unshift(updatedTask);
+            this.notifySubscribers();
+
             const response = await fetch(`/api/notes/${taskId}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify({
@@ -231,21 +228,37 @@ export const taskStore = {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to move note');
+                // Rollback if failed
+                this.tasks[toStatus] = this.tasks[toStatus].filter(t => t.id !== taskId);
+                this.tasks[fromStatus].unshift(task);
+                this.notifySubscribers();
+                throw new Error('Failed to update task status');
             }
 
-            const updatedNote = await response.json();
+            const serverUpdatedTask = await response.json();
 
-            // Remove from old status
-            this.tasks[fromStatus] = this.tasks[fromStatus].filter(task => task.id !== taskId);
+            // Update with server data
+            const index = this.tasks[toStatus].findIndex(t => t.id === taskId);
+            if (index !== -1) {
+                this.tasks[toStatus][index] = serverUpdatedTask;
+                this.notifySubscribers();
+            }
 
-            // Add to new status
-            this.tasks[toStatus] = [updatedNote, ...this.tasks[toStatus]];
-
-            this.notifySubscribers();
+            return serverUpdatedTask;
         } catch (error) {
-            console.error('Error moving note:', error);
-            alert('Failed to move note. Please try again.');
+            console.error('Error moving task:', error);
+            // Reload tasks to ensure consistency
+            await this.loadTasks();
+            throw error;
+        }
+    },
+
+    async markTaskAsIncomplete(taskId) {
+        try {
+            return await this.moveTask('done', 'ongoing', taskId);
+        } catch (error) {
+            console.error('Error marking task as incomplete:', error);
+            throw error;
         }
     },
 
@@ -279,6 +292,14 @@ export const taskStore = {
         } catch (error) {
             console.error('Error updating statistics:', error);
             // Silent fail for statistics to not interrupt user experience
+        }
+    },
+    async completeTask(taskId) {
+        try {
+            return await this.moveTask('ongoing', 'done', taskId);
+        } catch (error) {
+            console.error('Error completing task:', error);
+            throw error;
         }
     }
 };

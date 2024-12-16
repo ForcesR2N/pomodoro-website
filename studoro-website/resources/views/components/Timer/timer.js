@@ -1,4 +1,3 @@
-// timer.js
 import { TIMER_MODES } from './timerConfig';
 import { TimerUI } from './timerUI';
 

@@ -20,8 +20,8 @@
         @else
         <div class="flex items-center space-x-8">
             <a href="{{ route('home') }}" class="text-sm font-medium text-black hover:text-gray-700 transition-colors">HOME</a>
-            <a href="#timer" class="text-sm font-medium text-black hover:text-gray-700 transition-colors">POMODORO</a>
-            <a href="#tasks" class="text-sm font-medium text-black hover:text-gray-700 transition-colors">TASKS</a>
+            <a href="#timer" class="text-sm font-medium text-black hover:text-gray-700 transition-colors">TIMER</a>
+            <a href="#notes" class="text-sm font-medium text-black hover:text-gray-700 transition-colors">NOTES</a>
         </div>
         @endif
 

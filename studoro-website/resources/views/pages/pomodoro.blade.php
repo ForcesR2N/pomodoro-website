@@ -53,7 +53,7 @@
     </div>
 
     {{-- Notes Section --}}
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div id = "notes"class="max-w-6xl mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-2xl font-bold text-orange-500">Pomodoro Task List</h1>
             <button

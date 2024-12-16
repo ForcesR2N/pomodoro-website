@@ -1,4 +1,3 @@
-// resources/js/components/Timer/messages.js
 export const MESSAGES = {
     completionMessages: [
         "Hebat! Sesi fokus selesai! 🌟",
@@ -15,7 +14,7 @@ export const MESSAGES = {
     ],
     confirmationMessages: {
         focus: "Yakin ingin menghentikan sesi fokus? Kamu sudah berjuang sejauh ini!",
-        shortBreak: "Tidak sabar untuk mulai belajar lagi? Ayo kita mulai sekarang!",
+        shortBreak: "Sudah sejauh ini, kamu yakin ingin berhenti?",
         longBreak: "Istirahat panjang belum selesai. Yakin mau lanjut belajar?",
         default: "Yakin ingin menghentikan sesi ini?",
         reset: "Yakin ingin mengulang dari awal? Progress saat ini akan hilang."
