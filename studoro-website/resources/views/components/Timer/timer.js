@@ -1,3 +1,4 @@
+// timer.js
 import { TIMER_MODES } from './timerConfig';
 import { TimerUI } from './timerUI';
 
@@ -22,7 +23,8 @@ export class Timer {
             sessionCount: document.getElementById('sessionCount'),
             startBtn: document.getElementById('startBtn'),
             resetBtn: document.getElementById('resetBtn'),
-            stopBtn: document.getElementById('stopBtn')
+            stopBtn: document.getElementById('stopBtn'),
+            timerSection: document.getElementById('timer')
         };
 
         if (!this.elements.display) return;
@@ -34,7 +36,6 @@ export class Timer {
     }
 
     bindEvents() {
-        // Timer control buttons
         if (this.elements.startBtn) {
             this.elements.startBtn.addEventListener('click', () => this.toggleTimer());
         }
@@ -47,7 +48,6 @@ export class Timer {
             this.elements.stopBtn.addEventListener('click', () => this.confirmStop());
         }
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
@@ -58,34 +58,51 @@ export class Timer {
         });
     }
 
-    confirmReset() {
-        // Timer tetap jalan selama konfirmasi
-        this.ui.showNotification('confirmReset', this.state.currentMode);
-        this.ui.onConfirmReset = () => this.reset();
-    }
-
-    confirmStop() {
-        this.ui.showNotification('confirmStop', this.state.currentMode);
-        this.ui.onConfirmStop = () => this.stopTimer();
-    }
-
-    stopTimer() {
+    startTaskTimer(task) {
+        // Clear existing timer
         clearInterval(this.state.timer);
-        this.state.isRunning = false;
-        this.reset();
-        // Show completion message
-        this.ui.showNotification('completion');
+
+        // Set task and reset timer state
+        this.state.currentTask = task;
+        this.state.currentMode = 'focus';
+        this.state.timeLeft = TIMER_MODES.focus.time;
+        this.state.totalTime = TIMER_MODES.focus.time;
+
+        // Update task title
+        if (this.elements.title) {
+            this.elements.title.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <span class="text-sm text-gray-500 mb-1">Mengerjakan:</span>
+                    <span class="text-xl">${task.title}</span>
+                </div>
+            `;
+        }
+
+        // Start timer immediately
+        this.state.isRunning = true;
+        this.state.timer = setInterval(() => this.tick(), 1000);
+
+        // Update display and button
+        this.updateDisplay();
+        this.ui.updateStartButton(true);
+
+        // Add highlight effect
+        if (this.elements.timerSection) {
+            this.elements.timerSection.classList.add('highlight-animation');
+            setTimeout(() => {
+                this.elements.timerSection.classList.remove('highlight-animation');
+            }, 1000);
+        }
     }
 
     toggleTimer() {
-        this.state.isRunning = !this.state.isRunning;
-
         if (this.state.isRunning) {
-            this.state.timer = setInterval(() => this.tick(), 1000);
-        } else {
             clearInterval(this.state.timer);
+            this.state.isRunning = false;
+        } else {
+            this.state.timer = setInterval(() => this.tick(), 1000);
+            this.state.isRunning = true;
         }
-
         this.ui.updateStartButton(this.state.isRunning);
     }
 
@@ -118,22 +135,21 @@ export class Timer {
         }
     }
 
-    startTaskTimer(task) {
-        this.state.currentTask = task;
+    confirmReset() {
+        this.ui.showNotification('confirmReset', this.state.currentMode);
+        this.ui.onConfirmReset = () => this.reset();
+    }
+
+    confirmStop() {
+        this.ui.showNotification('confirmStop', this.state.currentMode);
+        this.ui.onConfirmStop = () => this.stopTimer();
+    }
+
+    stopTimer() {
+        clearInterval(this.state.timer);
+        this.state.isRunning = false;
         this.reset();
-
-        if (this.elements.title) {
-            this.elements.title.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <span class="text-sm text-gray-500 mb-1">Mengerjakan:</span>
-                    <span class="text-xl">${task.title}</span>
-                </div>
-            `;
-        }
-
-        this.state.isRunning = true;
-        this.state.timer = setInterval(() => this.tick(), 1000);
-        this.ui.updateStartButton(true);
+        this.ui.showNotification('completion');
     }
 
     transitionToNextPhase() {
@@ -198,6 +214,12 @@ export class Timer {
         this.state.totalTime = TIMER_MODES.focus.time;
         this.state.currentSession = 1;
 
+        if (!this.state.currentTask) {
+            if (this.elements.title) {
+                this.elements.title.textContent = TIMER_MODES.focus.label;
+            }
+        }
+
         this.updateDisplay();
         this.updateSessionDisplay();
         this.ui.updateStartButton(false);
@@ -205,7 +227,7 @@ export class Timer {
 
     playNotificationSound() {
         const audio = new Audio('notification.mp3');
-        audio.play().catch(() => {}); // Ignore errors if sound can't play
+        audio.play().catch(() => {});
     }
 }
 
@@ -215,4 +237,3 @@ document.addEventListener('DOMContentLoaded', () => {
         window.timer = new Timer();
     }
 });
-

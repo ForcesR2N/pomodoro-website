@@ -82,3 +82,30 @@
     opacity: 0;
     transform: scale(0.95);
 }
+.highlight-animation {
+    animation: highlight 1s ease-out;
+}
+
+@keyframes highlight {
+    0% {
+        background-color: rgba(249, 115, 22, 0.2); /* orange-500 with opacity */
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+.completing {
+    opacity: 0.5;
+    transition: opacity 0.3s ease-out;
+}
+
+.deleting {
+    opacity: 0.5;
+    transform: translateX(-20px);
+    transition: all 0.3s ease-out;
+}
+
+.reverting {
+    opacity: 0.5;
+    transition: opacity 0.3s ease-out;
+}

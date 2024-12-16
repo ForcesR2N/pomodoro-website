@@ -1,11 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PomodoroController;
 
+// Halaman utama
 Route::get('/', function () {
     return view('pages.homepage');
 })->name('home');
 
-Route::get('/pomodoro', function () {
-    return view('pages.pomodoro');
-})->name('pomodoro');
+// Halaman pomodoro dengan data dari database
+Route::get('/pomodoro', [PomodoroController::class, 'index'])->name('pomodoro');

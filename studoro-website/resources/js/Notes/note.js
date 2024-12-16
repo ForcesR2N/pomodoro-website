@@ -1,3 +1,4 @@
+// note.js
 import { taskStore } from './Store/taskStore';
 import { TaskCard } from './Utils/taskCard';
 import { Modal } from './Utils/modal';
@@ -14,53 +15,70 @@ class TaskManager {
     }
 
     handleStartTask(task) {
-        if (this.timer) {
-            this.timer.startTaskTimer(task);
+        const timerSection = document.getElementById('timer');
+
+        if (timerSection && window.timer) {
+            // Scroll to timer
+            timerSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // Start timer immediately
+            window.timer.startTaskTimer(task);
         }
     }
 
     init() {
         this.setupEventListeners();
         taskStore.subscribe(this.render.bind(this));
-        this.render(taskStore.tasks);
+        taskStore.loadTasks();
     }
 
     setupEventListeners() {
-        document.getElementById('task-form')?.addEventListener('submit', this.handleFormSubmit.bind(this));
-        const addTaskBtn = document.querySelector('[data-action="add-task"]');
-        addTaskBtn?.addEventListener('click', () => this.modal.open('create'));
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.options-btn')) {
-                document.querySelectorAll('.task-actions').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            }
+        // Listen for custom form submit event
+        document.addEventListener('taskFormSubmit', (e) => {
+            this.handleFormSubmit(e.detail.formData);
         });
+
+        const addTaskBtn = document.querySelector('[data-action="add-task"]');
+        if (addTaskBtn) {
+            addTaskBtn.addEventListener('click', () => this.modal.open('create'));
+        }
     }
 
-    handleFormSubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-
+    handleFormSubmit(formData) {
+        console.log('Form submitted');
         const task = {
             title: formData.get('task-title'),
             description: formData.get('task-description'),
-            dueDate: formData.get('task-due-date'),
-            priority: formData.get('task-priority')
+            priority: formData.get('task-priority'),
+            due_date: formData.get('task-due-date')
         };
 
-        const status = formData.get('task-status');
+        console.log('Processed task data:', task);
+
+        const status = formData.get('task-status') || 'ongoing';
         const taskId = formData.get('task-id');
+
+        // Debug validasi
+        console.log('Validation check:', {
+            hasTitle: Boolean(task.title),
+            hasDescription: Boolean(task.description),
+            hasDueDate: Boolean(task.due_date),
+            hasPriority: Boolean(task.priority),
+            isValid: isValid
+        });
 
         try {
             if (taskId) {
                 taskStore.updateTask(status, taskId, task);
             } else {
-                taskStore.addTask('ongoing', task);
+                taskStore.addTask(status, task);
             }
             this.modal.close();
         } catch (error) {
+            console.error('Error submitting form:', error);
             alert(error.message);
         }
     }
@@ -103,9 +121,7 @@ class TaskManager {
     }
 
     handleDelete(taskId, status) {
-        if (confirm('Are you sure you want to delete this task?')) {
-            taskStore.deleteTask(status, taskId);
-        }
+        taskStore.deleteTask(status, taskId);
     }
 
     handleComplete(taskId) {
@@ -118,7 +134,9 @@ class TaskManager {
 }
 
 if (document.getElementById('ongoing-tasks-list')) {
-    new TaskManager();
+    document.addEventListener('DOMContentLoaded', () => {
+        new TaskManager();
+    });
 }
 
 export default TaskManager;

@@ -14,31 +14,46 @@
             <input type="hidden" id="task-status" name="task-status" value="ongoing">
 
             <div class="mb-4">
-                <label for="task-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                <input type="text" id="task-title" name="task-title"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                       placeholder="Enter task title"
-                       required>
-            </div>
+        <label for="task-title" class="block text-sm font-medium text-gray-700 mb-1">
+            Title <span class="text-red-500">*</span>
+        </label>
+        <input type="text"
+               id="task-title"
+               name="task-title"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+               placeholder="Enter task title"
+               required>
+    </div>
 
             <div class="mb-4">
-                <label for="task-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea id="task-description" name="task-description" rows="3"
+                <label for="task-description" class="block text-sm font-medium text-gray-700 mb-1">
+                    Description <span class="text-red-500">*</span>
+                </label>
+                <textarea id="task-description"
+                          name="task-description"
+                          rows="3"
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                           placeholder="Enter task description"
                           required></textarea>
             </div>
 
             <div class="mb-4">
-                <label for="task-due-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                <input type="date" id="task-due-date" name="task-due-date"
+                <label for="task-due-date" class="block text-sm font-medium text-gray-700 mb-1">
+                    Due Date <span class="text-red-500">*</span>
+                </label>
+                <input type="date"
+                       id="task-due-date"
+                       name="task-due-date"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                        required>
             </div>
 
             <div class="mb-6">
-                <label for="task-priority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                <select id="task-priority" name="task-priority"
+                <label for="task-priority" class="block text-sm font-medium text-gray-700 mb-1">
+                    Priority <span class="text-red-500">*</span>
+                </label>
+                <select id="task-priority"
+                        name="task-priority"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                         required>
                     <option value="LOW">Low</option>

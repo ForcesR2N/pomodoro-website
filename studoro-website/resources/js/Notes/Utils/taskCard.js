@@ -1,6 +1,22 @@
+// taskCard.js
 import { PRIORITY_CLASSES } from '../Store/constants';
+import { confirmationDialog } from './confirmationDialog';
 
 export class TaskCard {
+    static formatDate(dateString) {
+        try {
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return dateString;
+        }
+    }
+
     static create(task, status, handlers) {
         const card = document.createElement('div');
         card.className = 'task-card bg-white rounded-lg shadow p-4 relative';
@@ -53,11 +69,7 @@ export class TaskCard {
                         </div>
                     </div>
                     <div class="mt-2 flex items-center gap-2">
-                        <span class="text-sm text-gray-500">${new Date(task.dueDate).toLocaleDateString('id-ID', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        })}</span>
+                        <span class="text-sm text-gray-500">${this.formatDate(task.due_date)}</span>
                         <span class="text-xs px-2 py-0.5 rounded-full ${PRIORITY_CLASSES[task.priority]}">
                             ${task.priority.toLowerCase()}
                         </span>
@@ -71,62 +83,155 @@ export class TaskCard {
     }
 
     static attachHandlers(card, task, status, handlers) {
-        if (status === 'ongoing') {
-            const checkbox = card.querySelector('.task-checkbox');
-            checkbox?.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    card.classList.add('completing');
-                    setTimeout(() => {
-                        handlers.onComplete(task.id);
-                    }, 300);
-                }
+        if (card.hasAttribute('handlers-attached')) return;
+        card.setAttribute('handlers-attached', 'true');
+
+        const optionsBtn = card.querySelector('.options-btn');
+        const actionsMenu = card.querySelector('.task-actions');
+        let isDeleting = false; // Add flag to prevent multiple delete attempts
+
+        if (optionsBtn && actionsMenu) {
+            optionsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.task-actions').forEach(menu => {
+                    if (menu !== actionsMenu) menu.classList.add('hidden');
+                });
+                actionsMenu.classList.toggle('hidden');
             });
 
-            const startTaskBtn = card.querySelector('.start-task-btn');
-            startTaskBtn?.addEventListener('click', () => {
-                handlers.onStartTask(task);
-                card.querySelector('.task-actions').classList.add('hidden');
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!card.contains(e.target)) {
+                    actionsMenu.classList.add('hidden');
+                }
             });
         }
 
-        const optionsBtn = card.querySelector('.options-btn');
-        const optionsMenu = card.querySelector('.task-actions');
+        // Checkbox handler for ongoing tasks
+        if (status === 'ongoing') {
+            const checkbox = card.querySelector('.task-checkbox');
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                        confirmationDialog.show({
+                            type: 'warning',
+                            title: 'Complete Task',
+                            message: 'Are you sure you want to mark this task as complete?',
+                            confirmText: 'Complete',
+                            onConfirm: () => {
+                                card.classList.add('completing');
+                                setTimeout(() => {
+                                    handlers.onComplete(task.id);
+                                }, 300);
+                            },
+                            onCancel: () => {
+                                checkbox.checked = false;
+                            }
+                        });
+                    }
+                });
+            }
 
-        optionsBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            document.querySelectorAll('.task-actions').forEach(menu => {
-                if (menu !== optionsMenu) menu.classList.add('hidden');
+            // Start task button handler
+            const startTaskBtn = card.querySelector('.start-task-btn');
+            if (startTaskBtn) {
+                startTaskBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    actionsMenu.classList.add('hidden');
+
+                    confirmationDialog.show({
+                        type: 'info',
+                        title: 'Start Task',
+                        message: 'Do you want to start working on this task?',
+                        confirmText: 'Start Timer',
+                        confirmButtonClass: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
+                        onConfirm: () => handlers.onStartTask(task)
+                    });
+                });
+            }
+        }
+
+        // Edit button handler
+        const editBtn = card.querySelector('.edit-btn');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                actionsMenu.classList.add('hidden');
+
+                confirmationDialog.show({
+                    type: 'edit',
+                    title: 'Edit Task',
+                    message: 'Do you want to edit this task?',
+                    confirmText: 'Edit',
+                    onConfirm: () => handlers.onEdit(task, status)
+                });
             });
-            optionsMenu.classList.toggle('hidden');
-        });
+        }
 
-        document.addEventListener('click', (e) => {
-            if (!card.contains(e.target)) {
-                optionsMenu.classList.add('hidden');
+        const deleteBtn = card.querySelector('.delete-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            try {
+                actionsMenu?.classList.add('hidden');
+
+                confirmationDialog.show({
+                    type: 'delete',
+                    title: 'Delete Task',
+                    message: 'Are you sure you want to delete this task?',
+                    confirmText: 'Delete',
+                    async onConfirm() {
+                        try {
+                            // Start animation immediately
+                            card.style.transition = 'all 0.3s ease-out';
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateX(-20px)';
+
+                            // Remove card from DOM after animation
+                            setTimeout(() => {
+                                card.remove();
+                            }, 300);
+
+                            // Delete in background
+                            handlers.onDelete(task.id, status).catch(error => {
+                                // If delete fails, show error notification
+                                confirmationDialog.show({
+                                    type: 'warning',
+                                    title: 'Error',
+                                    message: 'Failed to delete task. The page will refresh.',
+                                    confirmText: 'OK',
+                                    onConfirm: () => window.location.reload()
+                                });
+                            });
+                        } catch (error) {
+                            console.error('Failed to delete task:', error);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error showing confirmation:', error);
             }
         });
+        }
 
-        card.querySelector('.edit-btn')?.addEventListener('click', () => {
-            handlers.onEdit(task, status);
-            optionsMenu.classList.add('hidden');
-        });
-
-        card.querySelector('.delete-btn')?.addEventListener('click', () => {
-            card.classList.add('deleting');
-            setTimeout(() => {
-                handlers.onDelete(task.id, status);
-            }, 300);
-            optionsMenu.classList.add('hidden');
-        });
-
+        // Incomplete button handler
         const incompleteBtn = card.querySelector('.incomplete-btn');
         if (incompleteBtn) {
             incompleteBtn.addEventListener('click', () => {
-                card.classList.add('reverting');
-                setTimeout(() => {
-                    handlers.onReset(task.id);
-                }, 300);
-                optionsMenu.classList.add('hidden');
+                actionsMenu.classList.add('hidden');
+
+                confirmationDialog.show({
+                    type: 'warning',
+                    title: 'Mark as Incomplete',
+                    message: 'Do you want to mark this task as incomplete?',
+                    confirmText: 'Mark as Incomplete',
+                    confirmButtonClass: 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500',
+                    onConfirm: () => {
+                        card.classList.add('reverting');
+                        setTimeout(() => {
+                            handlers.onReset(task.id);
+                        }, 300);
+                    }
+                });
             });
         }
     }

@@ -66,24 +66,25 @@
             </button>
         </div>
 
+         <div class="max-w-6xl mx-auto px-4 py-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Ongoing Tasks -->
             <div class="bg-gray-50 rounded-xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-gray-800">Ongoing</h2>
-                </div>
+                <h2 class="text-lg font-semibold text-gray-800">Ongoing</h2>
                 <div id="ongoing-tasks-list" class="task-list-container">
-                    <!-- Tasks will be added here -->
+                    @forelse($notes['ongoing'] ?? [] as $note)
+                    @empty
+                        <p class="text-gray-400">No ongoing tasks yet</p>
+                    @endforelse
                 </div>
             </div>
 
-            <!-- Done Tasks -->
             <div class="bg-gray-50 rounded-xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-gray-800">Done</h2>
-                </div>
+                <h2 class="text-lg font-semibold text-gray-800">Done</h2>
                 <div id="done-tasks-list" class="task-list-container">
-                    <!-- Tasks will be added here -->
+                    @forelse($notes['done'] ?? [] as $note)
+                    @empty
+                        <p class="text-gray-400">No completed tasks yet</p>
+                    @endforelse
                 </div>
             </div>
         </div>
