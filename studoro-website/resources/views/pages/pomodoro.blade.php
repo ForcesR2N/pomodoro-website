@@ -91,8 +91,5 @@
     </div>
 
     @include('components.Notes.taskForm')
-    @push('scripts')
-    <script src="{{ mix('js/Notes/note.js') }}" defer></script>
-@endpush
 </div>
 @endsection
